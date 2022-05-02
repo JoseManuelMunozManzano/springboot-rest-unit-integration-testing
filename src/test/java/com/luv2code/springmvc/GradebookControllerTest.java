@@ -211,6 +211,20 @@ public class GradebookControllerTest {
                 .andExpect(jsonPath("$.emailAddress", is("eric.roby@luv2code_school.com")));
     }
 
+    @Test
+    void studentInformationHttpRequestEmptyResponse() throws Exception {
+        // Nos aseguramos que el estudiante con id 0 no existe antes de intentar recuperar su información
+        Optional<CollegeStudent> student = studentDao.findById(0);
+        assertFalse(student.isPresent());
+
+        // Intentamos un GET de su información.
+        // Esperamos error 404, ya que el id del estudiante 0 no existe
+        mockMvc.perform(MockMvcRequestBuilders.get("/studentInformation/{id}", 0))
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.message", is("Student or Grade was not found")));
+    }
+
     @AfterEach
     public void setupAfterTransaction() {
         jdbc.execute(sqlDeleteStudent);
