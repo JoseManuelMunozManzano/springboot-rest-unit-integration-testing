@@ -21,12 +21,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-// Informamos @Transactional porque haremos uso de JPA Entity Manager directamente en los tests
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @TestPropertySource("/application-test.properties")
 @AutoConfigureMockMvc
@@ -95,7 +97,6 @@ public class GradebookControllerTest {
 
     public static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 
-    // Inicialización del Mock Servlet Request
     @BeforeAll
     static void setup() {
         request = new MockHttpServletRequest();
@@ -113,10 +114,22 @@ public class GradebookControllerTest {
         jdbc.execute(sqlAddHistoryGrade);
     }
 
-    // Este test vacío es para comprobar que la configuración se ejecuta correctamente
     @Test
-    void placeholder() {
+    void getStudentsHttpRequest() throws Exception {
+        // Añadimos un segundo estudiante
+        student.setFirstname("Adri");
+        student.setLastname("Acosta");
+        student.setEmailAddress("adri@gmail.com");
+        entityManager.persist(student);
+        // Para obligar a persistir los datos inmediatamente
+        entityManager.flush();
 
+        // Confirmamos que se devuelve un status 200 y un contenido JSON
+        // y que el JSON es un array de 2 elementos
+        mockMvc.perform(MockMvcRequestBuilders.get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 
     @AfterEach
