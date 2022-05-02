@@ -172,6 +172,23 @@ public class GradebookControllerTest {
         assertFalse(studentDao.findById(1).isPresent());
     }
 
+    @Test
+    void deleteStudentHttpRequestErrorPage() throws Exception {
+        // Nos aseguramos que el estudiante con id 0 no existe antes de intentar borrarlo
+        assertFalse(studentDao.findById(0).isPresent());
+
+        // Intentamos borrar un estudiante con id inexistente
+        // Esperamos un status 4xx
+        // Y buscando en el JSON devuelto, buscamos un status 404 y un mensaje
+        // Recordar que los errores envian los campos: status, message, timeStamp
+        // Para el método is() hacer el import siguiente:
+        // import static org.hamcrest.Matchers.*;
+        mockMvc.perform(MockMvcRequestBuilders.delete("/student/{id}", 0))
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.message", is("Student or Grade was not found")));
+    }
+
     @AfterEach
     public void setupAfterTransaction() {
         jdbc.execute(sqlDeleteStudent);
