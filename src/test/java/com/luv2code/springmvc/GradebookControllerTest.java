@@ -27,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import java.util.Optional;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -187,6 +189,26 @@ public class GradebookControllerTest {
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.status", is(404)))
                 .andExpect(jsonPath("$.message", is("Student or Grade was not found")));
+    }
+
+    @Test
+    void studentInformationHttpRequest() throws Exception {
+        // Recuperar información del estudiante
+
+        // Nos aseguramos que el estudiante existe
+        Optional<CollegeStudent> student = studentDao.findById(1);
+        assertTrue(student.isPresent());
+
+        // Petición GET para obtener datos del estudiante
+        // Esperamos un estado 200 y obtener contenido en formato JSON
+        // Se indica cuál es el contenido JSON de la respuesta esperado
+        mockMvc.perform(MockMvcRequestBuilders.get("/studentInformation/{id}", 1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.firstname", is("Eric")))
+                .andExpect(jsonPath("$.lastname", is("Roby")))
+                .andExpect(jsonPath("$.emailAddress", is("eric.roby@luv2code_school.com")));
     }
 
     @AfterEach
