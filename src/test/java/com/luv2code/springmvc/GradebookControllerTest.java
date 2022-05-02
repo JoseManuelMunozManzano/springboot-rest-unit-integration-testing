@@ -154,7 +154,22 @@ public class GradebookControllerTest {
         // Hacemos uso del DAO y buscamos el estudiante por su email
         CollegeStudent verifyStudent = studentDao.findByEmailAddress("adri@gmail.com");
         assertNotNull(verifyStudent, "Student should be valid");
+    }
 
+    @Test
+    void deleteStudent() throws Exception {
+        // Nos aseguramos que el estudiante existe antes de borrarlo
+        assertTrue(studentDao.findById(1).isPresent());
+
+        // Hacemos una petición DELETE
+        // Esperamos un status de 200, un contenido JSON y que ese JSON tenga 0 estudiantes
+        mockMvc.perform(MockMvcRequestBuilders.delete("/student/{id}", 1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        // Esperamos no encontrar el estudiante, ya que se acaba de borrar
+        assertFalse(studentDao.findById(1).isPresent());
     }
 
     @AfterEach
