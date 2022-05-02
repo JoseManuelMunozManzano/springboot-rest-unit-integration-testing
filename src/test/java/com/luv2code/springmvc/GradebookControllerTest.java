@@ -28,6 +28,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @TestPropertySource("/application-test.properties")
@@ -130,6 +132,29 @@ public class GradebookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void createStudentHttpRequest() throws Exception {
+        // Estudiante a crear
+        student.setFirstname("Adri");
+        student.setLastname("Acosta");
+        student.setEmailAddress("adri@gmail.com");
+
+        // ObjectMapper pertenece al API Jackson
+        // writeValueAsString sirve para generar una cadena de texto JSON a partir del objeto Java y lo incluye
+        // en el cuerpo del HTTP request
+        mockMvc.perform(post("/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(student)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+
+        // Doble check sobre el backend
+        // Hacemos uso del DAO y buscamos el estudiante por su email
+        CollegeStudent verifyStudent = studentDao.findByEmailAddress("adri@gmail.com");
+        assertNotNull(verifyStudent, "Student should be valid");
+
     }
 
     @AfterEach
